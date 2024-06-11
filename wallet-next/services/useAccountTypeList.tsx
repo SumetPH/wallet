@@ -10,9 +10,13 @@ type AccountType = {
   account_type_updated_at: string;
 };
 
-export default function useAccountTypeList() {
+type Props = {
+  enable: boolean;
+};
+
+export default function useAccountTypeList({ enable = false }: Props) {
   const accountTypeList = useSWR<AccountType[]>(
-    "/account-type",
+    enable ? "/account-type-list" : null,
     fetcherWithToken
   );
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { forwardRef, useEffect, useImperativeHandle } from "react";
-
+import dayjs from "dayjs";
 import {
   Modal,
   ModalContent,
@@ -10,12 +10,9 @@ import {
   ModalFooter,
   Button,
   useDisclosure,
-  DropdownItem,
   Input,
   Select,
   SelectItem,
-  Calendar,
-  ButtonProps,
   DatePicker,
 } from "@nextui-org/react";
 import { I18nProvider } from "@react-aria/i18n";
@@ -63,31 +60,19 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
       openModal,
     }));
 
-    const accountTypeList = useAccountTypeList();
-
     const form = useForm<FormData>({
       resolver: zodResolver(schema),
       defaultValues: {
-        startDate: new Date().toISOString(),
+        accountName: account?.account_name || "",
+        accountTypeId: account?.account_type_id || "",
+        balance: account?.account_balance || "",
+        startDate: account?.account_created_at
+          ? new Date(account?.account_created_at).toISOString()
+          : new Date().toISOString(),
       },
     });
 
-    useEffect(() => {
-      if (isOpen && mode === "edit") {
-        form.setValue("accountName", account?.account_name || "");
-        form.setValue("accountTypeId", account?.account_type_id || "");
-        form.setValue("balance", account?.account_balance || "");
-        form.setValue("startDate", account?.account_created_at || "");
-      }
-    }, [
-      account?.account_balance,
-      account?.account_created_at,
-      account?.account_name,
-      account?.account_type_id,
-      form,
-      isOpen,
-      mode,
-    ]);
+    const accountTypeList = useAccountTypeList({ enable: true });
 
     const submit = (data: FormData) => {
       if (mode === "create") {
@@ -99,43 +84,49 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
 
     const createAccount = async (data: FormData) => {
       try {
-        await axiosWithToken({
-          url: "/account",
+        const res = await axiosWithToken({
+          url: "/account-create",
           method: "POST",
           data: {
             account_name: data.accountName,
             account_type_id: data.accountTypeId,
             account_balance: data.balance,
-            account_start_date: data.startDate,
+            account_start_date: dayjs(data.startDate).format(
+              "YYYY-MM-DD HH:mm:ss"
+            ),
           },
         });
+        if (res.status === 200) {
+          form.reset();
+          onOpenChange();
+          mutate("/account-list");
+        }
       } catch (error) {
         console.error(error);
-      } finally {
-        form.reset();
-        onOpenChange();
-        mutate("/account");
       }
     };
 
     const updateAccount = async (data: FormData) => {
       try {
-        await axiosWithToken({
-          url: "/account",
+        const res = await axiosWithToken({
+          url: "/account-update",
           method: "PUT",
           data: {
             account_id: account?.account_id,
             account_name: data.accountName,
             account_type_id: data.accountTypeId,
             account_balance: data.balance,
-            account_start_date: data.startDate,
+            account_start_date: dayjs(data.startDate).format(
+              "YYYY-MM-DD HH:mm:ss"
+            ),
           },
         });
+        if (res.status === 200) {
+          onOpenChange();
+          mutate("/account-list");
+        }
       } catch (error) {
         console.error(error);
-      } finally {
-        onOpenChange();
-        mutate("/account");
       }
     };
 
@@ -169,7 +160,8 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
                     {...form.register("accountTypeId")}
                     label="ชนิดบัญชี"
                     placeholder="เลือก"
-                    items={accountTypeList.data}
+                    items={accountTypeList.data ?? []}
+                    isLoading={accountTypeList.isLoading}
                     isInvalid={
                       form.formState.errors.accountTypeId?.message
                         ? true
@@ -202,6 +194,7 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
                         <DatePicker
                           label="วันเริ่มต้น"
                           hideTimeZone
+                          hourCycle={24}
                           value={parseAbsoluteToLocal(field.value)}
                           onChange={(value) =>
                             field.onChange(value.toAbsoluteString())

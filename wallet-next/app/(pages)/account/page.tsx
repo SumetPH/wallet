@@ -2,16 +2,17 @@
 
 import AccountHeader from "@/components/account/AccountHeader";
 import useAccountList from "@/services/useAccountList";
-import React, { useRef } from "react";
+import React from "react";
 import clsx from "clsx";
 import AccountRow from "@/components/account/AccountRow";
+import { Skeleton } from "@nextui-org/react";
 
 export default function Account() {
   const accountList = useAccountList();
 
   const amountColor = (amount: string, accountTypeId: string) => {
     // 3 = บัตรเครดิต
-    if (amount.includes("-") || ["3"].includes(accountTypeId)) {
+    if (amount.includes("-") || ["3", "4"].includes(accountTypeId)) {
       return "text-red-600";
     }
     return "text-green-600";
@@ -20,6 +21,13 @@ export default function Account() {
   return (
     <>
       <AccountHeader />
+
+      {accountList.isLoading && (
+        <div className="my-6">
+          <Skeleton className="h-6 w-full rounded-lg my-4" />
+          <Skeleton className="h-36 w-full rounded-lg my-4" />
+        </div>
+      )}
 
       {accountList.data?.map((item) => (
         <div key={item.account_type_id}>
@@ -40,7 +48,7 @@ export default function Account() {
               key={account.account_id}
               account={account}
               amountColor={amountColor(
-                account.balance,
+                account.net_balance,
                 account.account_type_id
               )}
             />

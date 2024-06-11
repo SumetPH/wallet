@@ -5,10 +5,11 @@ import db from "../../configs/db";
 
 const router = express.Router();
 
-router.get("/account-type", async (req, res) => {
+router.get("/account-type-list", async (req, res) => {
   const accountTypes = await db
     .selectFrom("wallet_account_type")
     .selectAll()
+    .orderBy("account_type_id asc")
     .execute();
   return res.json(accountTypes);
 });

@@ -17,17 +17,18 @@ export interface AccountType {
 export interface Account {
   account_id: string;
   account_name: string;
-  account_type_id: string;
   account_created_at: string;
   account_updated_at: string;
+  account_type_id: string;
+  account_type_name: string;
   account_balance: string;
   expense: string;
   income: string;
-  balance: string;
+  net_balance: string;
 }
 
 export default function useAccountList() {
-  const accountList = useSWR<AccountType[]>("/account", fetcherWithToken);
+  const accountList = useSWR<AccountType[]>("/account-list", fetcherWithToken);
 
   return accountList;
 }

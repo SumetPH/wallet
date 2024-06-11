@@ -35,7 +35,7 @@ export const AccountDeleteModal = forwardRef<AccountDeleteModalRef, Props>(
     const deleteAccount = async () => {
       try {
         await axiosWithToken({
-          url: "/account",
+          url: "/account-delete",
           method: "DELETE",
           data: {
             account_id: props.account.account_id,
@@ -45,7 +45,7 @@ export const AccountDeleteModal = forwardRef<AccountDeleteModalRef, Props>(
         console.error(error);
       } finally {
         onClose();
-        mutate("/account");
+        mutate("/account-list");
       }
     };
 

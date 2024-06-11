@@ -7,84 +7,74 @@ import auth from "../../middlewares/auth";
 
 const router = express.Router();
 
-router.get("/account", auth, async (req, res) => {
+router.get("/account-list", auth, async (req, res) => {
   try {
-    const accountType = await db
-      .selectFrom("wallet_account_type")
-      .selectAll()
-      .orderBy("wallet_account_type.account_type_id asc")
+    const accounts = await db
+      .selectFrom("wallet_account")
+      .leftJoin(
+        "wallet_account_type",
+        "wallet_account_type.account_type_id",
+        "wallet_account.account_type_id"
+      )
+      .leftJoin(
+        (eb) =>
+          eb
+            .selectFrom("transactions")
+            .select([
+              "transactions.account_id",
+              sql<string>`sum(case when category_type_id = '1' then transaction_amount else 0 end)`.as(
+                "expense"
+              ),
+              sql<string>`sum(case when category_type_id = '2' then transaction_amount else 0 end)`.as(
+                "income"
+              ),
+            ])
+            .groupBy("transactions.account_id")
+            .as("t"),
+        (join) => join.onRef("t.account_id", "=", "wallet_account.account_id")
+      )
+      .groupBy("wallet_account_type.account_type_id")
+      .orderBy("wallet_account_type.account_type_id")
+      .select([
+        "wallet_account_type.account_type_id",
+        "wallet_account_type.account_type_name",
+        "wallet_account_type.account_type_created_at",
+        "wallet_account_type.account_type_updated_at",
+        sql<string>`sum((coalesce(wallet_account.account_balance,0) + coalesce(t.income,0) - coalesce(t.expense,0)))`.as(
+          "account_type_balance"
+        ),
+        sql`
+          json_agg(
+            json_build_object(
+                'account_id', wallet_account.account_id,
+                'account_name', wallet_account.account_name,
+                'account_created_at', TO_CHAR(wallet_account.account_created_at, 'YYYY-MM-DD HH24:MI:SS'),
+                'account_updated_at', TO_CHAR(wallet_account.account_updated_at, 'YYYY-MM-DD HH24:MI:SS'),
+                'account_type_id', wallet_account_type.account_type_id,
+                'account_type_name', wallet_account_type.account_type_name,
+                'account_balance', wallet_account.account_balance::text,
+                'expense', coalesce(t.expense, 0)::text,
+                'income', coalesce(t.income, 0)::text,
+                'net_balance', (coalesce(wallet_account.account_balance,0) + coalesce(t.income,0) - coalesce(t.expense,0))::text
+            ) order by wallet_account.account_name
+        )
+        `.as("accounts"),
+      ])
       .execute();
 
-    const accountsList = [];
-
-    for (const at of accountType) {
-      let accounts = await db
-        .selectFrom("wallet_account")
-        .select([
-          "wallet_account.account_id",
-          "wallet_account.account_name",
-          "wallet_account.account_type_id",
-          "wallet_account.account_created_at",
-          "wallet_account.account_updated_at",
-          "wallet_account.account_balance",
-          sql`coalesce(sum(case when wallet_category_type.category_type_id = '1' then wallet_transaction.transaction_amount else 0 end), 0)`.as(
-            "expense"
-          ),
-          sql`coalesce(sum(case when wallet_category_type.category_type_id = '2' then wallet_transaction.transaction_amount else 0 end), 0)`.as(
-            "income"
-          ),
-          sql`
-           wallet_account.account_balance + 
-           coalesce(sum(case when wallet_category_type.category_type_id = '2' then wallet_transaction.transaction_amount else 0 end), 0) - 
-           coalesce(sum(case when wallet_category_type.category_type_id = '1' then wallet_transaction.transaction_amount else 0 end), 0)
-          `.as("balance"),
-        ])
-        .leftJoin(
-          "wallet_transaction",
-          "wallet_transaction.account_id",
-          "wallet_account.account_id"
-        )
-        .leftJoin(
-          "wallet_category",
-          "wallet_category.category_id",
-          "wallet_transaction.category_id"
-        )
-        .leftJoin(
-          "wallet_category_type",
-          "wallet_category_type.category_type_id",
-          "wallet_category.category_type_id"
-        )
-        .where("wallet_account.user_id", "=", req.userId)
-        .where("wallet_account.account_type_id", "=", at.account_type_id)
-        .groupBy("wallet_account.account_id")
-        .orderBy("wallet_account.account_name asc")
-        .execute();
-
-      // sum account type balance
-      const accountTypeBalance = accounts
-        .reduce((prev, curr) => prev + Number(curr.balance), 0)
-        .toFixed(2);
-
-      accountsList.push({
-        ...at,
-        account_type_balance: accountTypeBalance,
-        accounts,
-      });
-    }
-
-    return res.status(200).json(accountsList);
+    return res.status(200).json(accounts);
   } catch (error) {
     return res.status(400).json({ error });
   }
 });
 
-router.post("/account", auth, async (req, res) => {
+router.post("/account-create", auth, async (req, res) => {
   try {
     const bodySchema = z.object({
       account_name: z.string().min(1),
       account_type_id: z.string().min(1),
       account_balance: z.string().min(1),
-      account_start_date: z.string().datetime(),
+      account_start_date: z.string().min(1),
     });
 
     const body = await bodySchema.parse(req.body);
@@ -103,18 +93,19 @@ router.post("/account", auth, async (req, res) => {
 
     return res.status(200).json(newAccount);
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error });
   }
 });
 
-router.put("/account", auth, async (req, res) => {
+router.put("/account-update", auth, async (req, res) => {
   try {
     const bodySchema = z.object({
       account_id: z.string().min(1),
       account_name: z.string().min(1),
       account_type_id: z.string().min(1),
       account_balance: z.string().min(1),
-      account_start_date: z.string().datetime(),
+      account_start_date: z.string().min(1),
     });
     const body = await bodySchema.parse(req.body);
     await db
@@ -136,7 +127,7 @@ router.put("/account", auth, async (req, res) => {
   }
 });
 
-router.delete("/account", auth, async (req, res) => {
+router.delete("/account-delete", auth, async (req, res) => {
   try {
     const bodySchema = z.object({
       account_id: z.string().min(1),
