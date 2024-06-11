@@ -20,86 +20,55 @@ router.get("/account", auth, async (req, res) => {
     for (const at of accountType) {
       let accounts = await db
         .selectFrom("wallet_account")
-        .where("wallet_account.user_id", "=", req.userId)
-        .where("wallet_account.account_type_id", "=", at.account_type_id)
-        .select(({ selectFrom }) => [
-          "wallet_account.account_id",
+        .select([
           "wallet_account.account_id",
           "wallet_account.account_name",
           "wallet_account.account_type_id",
           "wallet_account.account_created_at",
           "wallet_account.account_updated_at",
           "wallet_account.account_balance",
-          // sub query expense
-          selectFrom("wallet_transaction")
-            .select(
-              sql`COALESCE(SUM(wallet_transaction.transaction_amount),0)`.as(
-                "sum"
-              )
-            )
-            .leftJoin(
-              "wallet_category",
-              "wallet_category.category_id",
-              "wallet_transaction.category_id"
-            )
-            .leftJoin(
-              "wallet_category_type",
-              "wallet_category_type.category_type_id",
-              "wallet_category.category_type_id"
-            )
-            .whereRef(
-              "wallet_transaction.account_id",
-              "=",
-              "wallet_account.account_id"
-            )
-            .where("wallet_category_type.category_type_id", "=", "1")
-            .as("expense"),
-          // sub query income
-          selectFrom("wallet_transaction")
-            .select(
-              sql`COALESCE(SUM(wallet_transaction.transaction_amount),0)`.as(
-                "sum"
-              )
-            )
-            .leftJoin(
-              "wallet_category",
-              "wallet_category.category_id",
-              "wallet_transaction.category_id"
-            )
-            .leftJoin(
-              "wallet_category_type",
-              "wallet_category_type.category_type_id",
-              "wallet_category.category_type_id"
-            )
-            .whereRef(
-              "wallet_transaction.account_id",
-              "=",
-              "wallet_account.account_id"
-            )
-            .where("wallet_category_type.category_type_id", "=", "2")
-            .as("income"),
+          sql`coalesce(sum(case when wallet_category_type.category_type_id = '1' then wallet_transaction.transaction_amount else 0 end), 0)`.as(
+            "expense"
+          ),
+          sql`coalesce(sum(case when wallet_category_type.category_type_id = '2' then wallet_transaction.transaction_amount else 0 end), 0)`.as(
+            "income"
+          ),
+          sql`
+           wallet_account.account_balance + 
+           coalesce(sum(case when wallet_category_type.category_type_id = '2' then wallet_transaction.transaction_amount else 0 end), 0) - 
+           coalesce(sum(case when wallet_category_type.category_type_id = '1' then wallet_transaction.transaction_amount else 0 end), 0)
+          `.as("balance"),
         ])
+        .leftJoin(
+          "wallet_transaction",
+          "wallet_transaction.account_id",
+          "wallet_account.account_id"
+        )
+        .leftJoin(
+          "wallet_category",
+          "wallet_category.category_id",
+          "wallet_transaction.category_id"
+        )
+        .leftJoin(
+          "wallet_category_type",
+          "wallet_category_type.category_type_id",
+          "wallet_category.category_type_id"
+        )
+        .where("wallet_account.user_id", "=", req.userId)
+        .where("wallet_account.account_type_id", "=", at.account_type_id)
+        .groupBy("wallet_account.account_id")
+        .orderBy("wallet_account.account_name asc")
         .execute();
 
-      // sum account balance
-      const accountsWithBalance = accounts.map((account) => ({
-        ...account,
-        balance: (
-          Number(account.account_balance) +
-          Number(account.expense) -
-          Number(account.income)
-        ).toFixed(2),
-      }));
-
       // sum account type balance
-      const accountTypeBalance = accountsWithBalance
+      const accountTypeBalance = accounts
         .reduce((prev, curr) => prev + Number(curr.balance), 0)
         .toFixed(2);
 
       accountsList.push({
         ...at,
         account_type_balance: accountTypeBalance,
-        accounts: accountsWithBalance,
+        accounts,
       });
     }
 
@@ -144,7 +113,8 @@ router.put("/account", auth, async (req, res) => {
       account_id: z.string().min(1),
       account_name: z.string().min(1),
       account_type_id: z.string().min(1),
-      account_balance: z.number().min(1),
+      account_balance: z.string().min(1),
+      account_start_date: z.string().datetime(),
     });
     const body = await bodySchema.parse(req.body);
     await db
@@ -153,6 +123,7 @@ router.put("/account", auth, async (req, res) => {
         account_name: body.account_name,
         account_type_id: body.account_type_id,
         account_balance: body.account_balance,
+        account_created_at: body.account_start_date,
         account_updated_at: new Date(),
       })
       .where("account_id", "=", body.account_id)

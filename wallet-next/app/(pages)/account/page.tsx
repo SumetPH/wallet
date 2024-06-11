@@ -2,9 +2,9 @@
 
 import AccountHeader from "@/components/account/AccountHeader";
 import useAccountList from "@/services/useAccountList";
-import { Avatar } from "@nextui-org/react";
-import React from "react";
+import React, { useRef } from "react";
 import clsx from "clsx";
+import AccountRow from "@/components/account/AccountRow";
 
 export default function Account() {
   const accountList = useAccountList();
@@ -36,24 +36,14 @@ export default function Account() {
           </div>
 
           {item.accounts.map((account) => (
-            <div
+            <AccountRow
               key={account.account_id}
-              className="flex gap-3 items-center p-2 border-b last:border-none"
-            >
-              <Avatar name={account.account_name} />
-              <div>
-                <section>{account.account_name}</section>
-                <section
-                  className={clsx(
-                    "font-medium",
-                    amountColor(account.balance, item.account_type_id)
-                  )}
-                >
-                  {account.balance} บาท
-                  <br />
-                </section>
-              </div>
-            </div>
+              account={account}
+              amountColor={amountColor(
+                account.balance,
+                account.account_type_id
+              )}
+            />
           ))}
         </div>
       ))}

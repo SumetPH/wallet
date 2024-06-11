@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { MdOutlineMoreHoriz } from "react-icons/md";
 import {
   Dropdown,
@@ -8,10 +8,11 @@ import {
   Button,
   useDisclosure,
 } from "@nextui-org/react";
-import AccountModal from "@/components/account/AccountModal";
+import { AccountFormModalRef } from "@/components/account/AccountFormModal";
+import { AccountFormModal } from "./AccountFormModal";
 
 export default function PageHeader() {
-  const accountFormDisclosure = useDisclosure();
+  const AccountFormModalRef = useRef<AccountFormModalRef>(null);
 
   return (
     <>
@@ -27,7 +28,7 @@ export default function PageHeader() {
             <DropdownMenu>
               <DropdownItem
                 key="accountAdd"
-                onClick={accountFormDisclosure.onOpen}
+                onClick={() => AccountFormModalRef.current?.openModal()}
               >
                 เพิ่มบัญชี
               </DropdownItem>
@@ -36,7 +37,7 @@ export default function PageHeader() {
         </section>
       </div>
 
-      <AccountModal {...accountFormDisclosure} />
+      <AccountFormModal ref={AccountFormModalRef} />
     </>
   );
 }

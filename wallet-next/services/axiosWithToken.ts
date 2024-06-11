@@ -7,7 +7,7 @@ const token =
 type arg = {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
-  data: Record<string, any>;
+  data?: Record<string, any>;
 };
 
 export const axiosWithToken = <T>({ url, method = "GET", data }: arg) => {
