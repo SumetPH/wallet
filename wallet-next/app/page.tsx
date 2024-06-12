@@ -1,12 +1,16 @@
 "use client";
 
-import { Select, SelectItem } from "@nextui-org/react";
 import React from "react";
+import useTransactionList from "@/services/useTransactionList";
+import TransactionList from "@/components/transaction/TransactionList";
 
-export default function Index() {
+export default function Home() {
+  const transactionList = useTransactionList({});
+
   return (
-    <>
-      <div></div>
-    </>
+    <TransactionList
+      transactionRes={transactionList.data}
+      isLoading={transactionList.isLoading}
+    />
   );
 }

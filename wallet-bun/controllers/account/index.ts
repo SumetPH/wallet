@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 import db from "../../configs/db";
 import { sql } from "kysely";
 import auth from "../../middlewares/auth";
+import dayjs from "dayjs";
 
 const router = express.Router();
 
@@ -115,7 +116,7 @@ router.put("/account-update", auth, async (req, res) => {
         account_type_id: body.account_type_id,
         account_balance: body.account_balance,
         account_created_at: body.account_start_date,
-        account_updated_at: new Date(),
+        account_updated_at: dayjs().format("YYYY-MM-DD HH:mm:ss"),
       })
       .where("account_id", "=", body.account_id)
       .where("user_id", "=", req.userId)

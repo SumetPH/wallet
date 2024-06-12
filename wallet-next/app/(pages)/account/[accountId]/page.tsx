@@ -1,3 +1,7 @@
+"use client";
+
+import TransactionList from "@/components/transaction/TransactionList";
+import useTransactionList from "@/services/useTransactionList";
 import React from "react";
 
 export default function AccountTransaction({
@@ -5,5 +9,14 @@ export default function AccountTransaction({
 }: {
   params: { accountId: string };
 }) {
-  return <div>AccountTransaction : {params.accountId}</div>;
+  const transactionList = useTransactionList({
+    accountId: params.accountId,
+  });
+
+  return (
+    <TransactionList
+      transactionRes={transactionList.data}
+      isLoading={transactionList.isLoading}
+    />
+  );
 }
