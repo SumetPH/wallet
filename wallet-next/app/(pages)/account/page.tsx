@@ -6,9 +6,12 @@ import React from "react";
 import clsx from "clsx";
 import AccountRow from "@/components/account/AccountRow";
 import { Skeleton } from "@nextui-org/react";
+import numeral from "numeral";
 
 export default function Account() {
-  const accountList = useAccountList();
+  const accountList = useAccountList({
+    enable: true,
+  });
 
   const amountColor = (amount: string, accountTypeId: string) => {
     // 3 = บัตรเครดิต
@@ -39,7 +42,7 @@ export default function Account() {
                 amountColor(item.account_type_balance, item.account_type_id)
               )}
             >
-              {item.account_type_balance} บาท
+              {numeral(item.account_type_balance).format("0,0.00")} บาท
             </span>
           </div>
 

@@ -16,6 +16,7 @@ import { MdOutlineMoreVert } from "react-icons/md";
 import { AccountFormModalRef } from "@/components/account/AccountFormModal";
 import { AccountFormModal } from "./AccountFormModal";
 import { useRouter } from "next/navigation";
+import numeral from "numeral";
 
 type Props = {
   account: Account;
@@ -46,7 +47,7 @@ export default function AccountRow({ account, amountColor }: Props) {
           <div>
             <section>{account.account_name}</section>
             <section className={clsx("font-medium", amountColor)}>
-              {account.net_balance} บาท
+              {numeral(account.net_balance).format("0,0.00")} บาท
               <br />
             </section>
           </div>

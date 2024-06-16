@@ -27,8 +27,15 @@ export interface Account {
   net_balance: string;
 }
 
-export default function useAccountList() {
-  const accountList = useSWR<AccountType[]>("/account-list", fetcherWithToken);
+type Props = {
+  enable: boolean;
+};
+
+export default function useAccountList({ enable = true }: Props) {
+  const accountList = useSWR<AccountType[]>(
+    enable ? "/account-list" : undefined,
+    fetcherWithToken
+  );
 
   return accountList;
 }

@@ -5,6 +5,8 @@ import { fetcherWithToken } from "@/services/fetcherWithToken";
 
 export interface TransactionRes {
   date: string;
+  income: string;
+  expense: string;
   total: string;
   transactions: Transaction[];
 }
@@ -12,6 +14,7 @@ export interface TransactionRes {
 export interface Transaction {
   transaction_id: string;
   transaction_amount: string;
+  transaction_note: string;
   transaction_created_at: string;
   category_id: string;
   category_name: string;
@@ -28,9 +31,10 @@ type Props = {
 export default function useTransactionList({ accountId = "" }: Props) {
   const searchParams = new URLSearchParams();
   if (accountId) searchParams.append("account_id", accountId);
+  const query = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
   const transactionList = useSWR<TransactionRes[]>(
-    `/transaction-list?${searchParams.toString()}`,
+    `/transaction-list${query}`,
     fetcherWithToken
   );
 

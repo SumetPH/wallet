@@ -16,7 +16,7 @@ export default function Sidebar() {
         <Button
           className="justify-start items-center"
           fullWidth
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/transaction")}
         >
           <MdOutlineHome size={22} />
           <span className="text-base font-medium">หน้าแรก</span>

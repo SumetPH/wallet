@@ -10,19 +10,11 @@ const router = express.Router();
 
 router.get("/budget-list", auth, async (req, res) => {
   try {
-    const schema = z.object({
-      user_id: z.string().min(1),
-    });
-
-    const query = await schema.parse({
-      user_id: req.query.user_id,
-    });
-
     const budget = await db
       .with("budget_all", (db) =>
         db
           .selectFrom("wallet_budget")
-          .where("wallet_budget.user_id", "=", query.user_id)
+          .where("wallet_budget.user_id", "=", req.userId)
           .groupBy(["wallet_budget.category_id", "wallet_budget.user_id"])
           .select(({ fn }) => [
             "wallet_budget.user_id",
@@ -34,7 +26,7 @@ router.get("/budget-list", auth, async (req, res) => {
         db
           .selectFrom("transactions")
           .where("transactions.category_type_id", "=", "1")
-          .where("transactions.user_id", "=", query.user_id)
+          .where("transactions.user_id", "=", req.userId)
           .groupBy(["transactions.category_id", "transactions.user_id"])
           .select(({ fn }) => [
             "transactions.user_id",

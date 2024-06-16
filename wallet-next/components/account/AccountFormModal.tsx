@@ -1,6 +1,6 @@
 "use client";
 
-import React, { forwardRef, useEffect, useImperativeHandle } from "react";
+import React, { forwardRef, useImperativeHandle } from "react";
 import dayjs from "dayjs";
 import {
   Modal,
@@ -27,7 +27,7 @@ import { Account } from "@/services/useAccountList";
 
 const schema = z.object({
   accountName: z.string().min(1, { message: "กรุณากรอกชื่อบัญชี" }),
-  accountTypeId: z.string().min(1, { message: "กรุณาเลือกชนิดบัญชี" }),
+  accountTypeId: z.set(z.string()).min(1, { message: "กรุณาเลือกประเภทบัญชี" }),
   balance: z
     .string()
     .min(1, { message: "กรุณากรอกจํานวนเงิน" })
@@ -53,6 +53,16 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
     const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
     const openModal = () => {
+      form.reset({
+        accountName: account?.account_name || "",
+        accountTypeId: account?.account_type_id
+          ? new Set([account?.account_type_id])
+          : new Set([]),
+        balance: account?.account_balance || "",
+        startDate: account?.account_created_at
+          ? new Date(account?.account_created_at).toISOString()
+          : new Date().toISOString(),
+      });
       onOpen();
     };
 
@@ -62,17 +72,9 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
 
     const form = useForm<FormData>({
       resolver: zodResolver(schema),
-      defaultValues: {
-        accountName: account?.account_name || "",
-        accountTypeId: account?.account_type_id || "",
-        balance: account?.account_balance || "",
-        startDate: account?.account_created_at
-          ? new Date(account?.account_created_at).toISOString()
-          : new Date().toISOString(),
-      },
     });
 
-    const accountTypeList = useAccountTypeList({ enable: true });
+    const accountTypeList = useAccountTypeList({ enable: isOpen });
 
     const submit = (data: FormData) => {
       if (mode === "create") {
@@ -89,7 +91,7 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
           method: "POST",
           data: {
             account_name: data.accountName,
-            account_type_id: data.accountTypeId,
+            account_type_id: [...data.accountTypeId][0],
             account_balance: data.balance,
             account_start_date: dayjs(data.startDate).format(
               "YYYY-MM-DD HH:mm:ss"
@@ -97,7 +99,6 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
           },
         });
         if (res.status === 200) {
-          form.reset();
           onOpenChange();
           mutate("/account-list");
         }
@@ -114,7 +115,7 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
           data: {
             account_id: account?.account_id,
             account_name: data.accountName,
-            account_type_id: data.accountTypeId,
+            account_type_id: [...data.accountTypeId][0],
             account_balance: data.balance,
             account_start_date: dayjs(data.startDate).format(
               "YYYY-MM-DD HH:mm:ss"
@@ -156,25 +157,35 @@ export const AccountFormModal = forwardRef<AccountFormModalRef, Props>(
                     errorMessage={form.formState.errors.accountName?.message}
                   />
 
-                  <Select
-                    {...form.register("accountTypeId")}
-                    label="ชนิดบัญชี"
-                    placeholder="เลือก"
-                    items={accountTypeList.data ?? []}
-                    isLoading={accountTypeList.isLoading}
-                    isInvalid={
-                      form.formState.errors.accountTypeId?.message
-                        ? true
-                        : false
-                    }
-                    errorMessage={form.formState.errors.accountTypeId?.message}
-                  >
-                    {(item) => (
-                      <SelectItem key={item.account_type_id}>
-                        {item.account_type_name}
-                      </SelectItem>
+                  <Controller
+                    control={form.control}
+                    name="accountTypeId"
+                    render={({ field, formState }) => (
+                      <Select
+                        label="ชนิดบัญชี"
+                        placeholder="เลือก"
+                        items={accountTypeList.data ?? []}
+                        selectionMode="single"
+                        selectedKeys={field.value}
+                        onSelectionChange={field.onChange}
+                        isLoading={accountTypeList.isLoading}
+                        isInvalid={
+                          form.formState.errors.accountTypeId?.message
+                            ? true
+                            : false
+                        }
+                        errorMessage={
+                          form.formState.errors.accountTypeId?.message
+                        }
+                      >
+                        {(item) => (
+                          <SelectItem key={item.account_type_id}>
+                            {item.account_type_name}
+                          </SelectItem>
+                        )}
+                      </Select>
                     )}
-                  </Select>
+                  />
 
                   <Input
                     {...form.register("balance")}

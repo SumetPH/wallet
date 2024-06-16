@@ -14,7 +14,7 @@ type Props = {
   enable: boolean;
 };
 
-export default function useAccountTypeList({ enable = false }: Props) {
+export default function useAccountTypeList({ enable = true }: Props) {
   const accountTypeList = useSWR<AccountType[]>(
     enable ? "/account-type-list" : null,
     fetcherWithToken

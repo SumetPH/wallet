@@ -24,6 +24,12 @@ router.get("/transaction-list", auth, async (req, res) => {
         sql<string>`to_char(date(transaction_created_at), 'YYYY-MM-DD')`.as(
           "date"
         ),
+        sql<string>`coalesce(sum(case when category_type_id = '1' then transaction_amount else 0 end), 0)`.as(
+          "expense"
+        ),
+        sql<string>`coalesce(sum(case when category_type_id = '2' then transaction_amount else 0 end), 0)`.as(
+          "income"
+        ),
         sql<string>`
         coalesce(sum(case when category_type_id = '2' then transaction_amount else 0 end), 0) - 
         coalesce(sum(case when category_type_id = '1' then transaction_amount else 0 end), 0)
@@ -33,6 +39,7 @@ router.get("/transaction-list", auth, async (req, res) => {
           JSON_BUILD_OBJECT(
               'transaction_id', transaction_id,
               'transaction_amount', transaction_amount::text,
+              'transaction_note', transaction_note,
               'transaction_created_at', to_char(transaction_created_at, 'YYYY-MM-DD HH24:MI:SS'),
               'category_id', category_id,
               'category_name', category_name,
@@ -44,7 +51,7 @@ router.get("/transaction-list", auth, async (req, res) => {
         )
       `.as("transactions"),
       ])
-      .groupBy([sql`date(transaction_created_at)`])
+      .groupBy("date")
       .orderBy("date desc")
       .where("transactions.user_id", "=", req.userId);
 
@@ -66,7 +73,7 @@ router.post("/transaction-create", auth, async (req, res) => {
       transaction_amount: z.string().min(1),
       account_id: z.string().min(1),
       category_id: z.string().min(1),
-      transaction_note: z.string().min(1).optional(),
+      transaction_note: z.string().optional(),
       transaction_created_at: z.string().min(1),
     });
 
@@ -98,7 +105,7 @@ router.put("/transaction-update", auth, async (req, res) => {
       transaction_amount: z.string().min(1).optional(),
       account_id: z.string().min(1).optional(),
       category_id: z.string().min(1).optional(),
-      transaction_note: z.string().min(1).optional(),
+      transaction_note: z.string().optional(),
       transaction_created_at: z.string().min(1).optional(),
     });
 

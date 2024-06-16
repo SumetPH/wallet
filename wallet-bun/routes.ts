@@ -4,6 +4,7 @@ import account from "./controllers/account";
 import accountType from "./controllers/accountType";
 import transaction from "./controllers/transaction";
 import budget from "./controllers/budget";
+import category from "./controllers/category";
 
 export default function routes(app: Express) {
   app.use("/v1", auth);
@@ -11,4 +12,5 @@ export default function routes(app: Express) {
   app.use("/v1", accountType);
   app.use("/v1", transaction);
   app.use("/v1", budget);
+  app.use("/v1", category);
 }
