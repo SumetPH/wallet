@@ -62,14 +62,14 @@ export default function AccountRow({ account, amountColor }: Props) {
             <DropdownMenu>
               <DropdownItem
                 color="primary"
-                onClick={() => AccountFormModalRef.current?.openModal()}
+                onPress={() => AccountFormModalRef.current?.openModal()}
               >
                 แก้ไข
               </DropdownItem>
               <DropdownItem
                 className="text-danger"
                 color="danger"
-                onClick={() => accountDeleteModalRef.current?.openModal()}
+                onPress={() => accountDeleteModalRef.current?.openModal()}
               >
                 ลบ
               </DropdownItem>

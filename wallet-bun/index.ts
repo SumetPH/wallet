@@ -11,6 +11,10 @@ app.use(express.urlencoded({ extended: true }));
 
 routes(app);
 
+app.get("/", (req, res) => {
+  return res.send("wallet api");
+});
+
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });

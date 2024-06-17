@@ -34,8 +34,7 @@ export default function TransactionHeader({ onCreateOrUpdate }: Props) {
             <DropdownMenu>
               <DropdownItem
                 key="addExpense"
-                onClick={() => {
-                  setCategoryType(CategoryType.expense);
+                onPress={() => {
                   transactionFormModalRef.current?.openModal();
                 }}
               >
@@ -43,7 +42,7 @@ export default function TransactionHeader({ onCreateOrUpdate }: Props) {
               </DropdownItem>
               <DropdownItem
                 key="addIncome"
-                onClick={() => {
+                onPress={() => {
                   setCategoryType(CategoryType.income);
                   transactionFormModalRef.current?.openModal();
                 }}

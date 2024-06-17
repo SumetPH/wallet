@@ -28,7 +28,7 @@ export default function PageHeader() {
             <DropdownMenu>
               <DropdownItem
                 key="accountAdd"
-                onClick={() => AccountFormModalRef.current?.openModal()}
+                onPress={() => AccountFormModalRef.current?.openModal()}
               >
                 เพิ่มบัญชี
               </DropdownItem>

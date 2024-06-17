@@ -161,14 +161,9 @@ export const TransactionFormModal = forwardRef<TransactionFormModalRef, Props>(
       }
     };
 
-    const [acc, setAcc] = useState<Selection>(
-      new Set(["2745d065-5dcd-4bb9-8c69-2ae1e8bd00d5"])
-    );
-
     return (
       <>
         <Modal
-          className="overflow-visible"
           isOpen={isOpen}
           onOpenChange={onOpenChange}
           isDismissable={false}

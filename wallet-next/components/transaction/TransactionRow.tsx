@@ -51,7 +51,7 @@ export default function TransactionRow({
             </DropdownTrigger>
             <DropdownMenu>
               <DropdownItem
-                onClick={() => transactionDeleteModalRef.current?.openModal()}
+                onPress={() => transactionDeleteModalRef.current?.openModal()}
               >
                 ลบ
               </DropdownItem>
