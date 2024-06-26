@@ -12,7 +12,8 @@ types.setTypeParser(1114, (str) => dayjs(str).format("YYYY-MM-DD HH:mm:ss"));
 const db = new Kysely<DB>({
   dialect: new PostgresDialect({
     pool: new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString:
+        process.env.DATABASE_URL || "postgres://sumetph@localhost/wallet",
     }),
   }),
   // log: ["query", "error"],

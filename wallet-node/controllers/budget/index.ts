@@ -27,6 +27,16 @@ router.get("/budget-list", auth, async (req, res) => {
           .selectFrom("transactions")
           .where("transactions.category_type_id", "=", "1")
           .where("transactions.user_id", "=", req.userId)
+          .where(
+            "transaction_created_at",
+            ">=",
+            dayjs().startOf("month").hour(0).minute(0).second(0).toDate()
+          )
+          .where(
+            "transaction_created_at",
+            "<=",
+            dayjs().endOf("month").hour(23).minute(59).second(59).toDate()
+          )
           .groupBy(["transactions.category_id", "transactions.user_id"])
           .select(({ fn }) => [
             "transactions.user_id",
@@ -48,7 +58,7 @@ router.get("/budget-list", auth, async (req, res) => {
           "budget_remain"
         ),
       ])
-      .execute();
+      .executeTakeFirst();
 
     const budgetList = await db
       .selectFrom("wallet_budget")
@@ -58,6 +68,16 @@ router.get("/budget-list", auth, async (req, res) => {
         "wallet_budget.category_id"
       )
       .where("transactions.category_type_id", "=", "1")
+      .where(
+        "transaction_created_at",
+        ">=",
+        dayjs().startOf("month").hour(0).minute(0).second(0).toDate()
+      )
+      .where(
+        "transaction_created_at",
+        "<=",
+        dayjs().endOf("month").hour(23).minute(59).second(59).toDate()
+      )
       .groupBy("wallet_budget.budget_id")
       .orderBy("wallet_budget.budget_name")
       .select(({ fn }) => [

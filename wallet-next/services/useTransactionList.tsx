@@ -26,11 +26,22 @@ export interface Transaction {
 
 type Props = {
   accountId?: string;
+  categoryId?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
-export default function useTransactionList({ accountId = "" }: Props) {
+export default function useTransactionList({
+  accountId,
+  categoryId,
+  startDate,
+  endDate,
+}: Props) {
   const searchParams = new URLSearchParams();
   if (accountId) searchParams.append("account_id", accountId);
+  if (categoryId) searchParams.append("category_id", categoryId);
+  if (startDate) searchParams.append("start_date", startDate);
+  if (endDate) searchParams.append("end_date", endDate);
   const query = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
   const transactionList = useSWR<TransactionRes[]>(

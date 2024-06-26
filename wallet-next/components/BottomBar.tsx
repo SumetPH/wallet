@@ -6,6 +6,7 @@ import {
   MdOutlineHome,
   MdOutlineAccountBalance,
   MdOutlineLogout,
+  MdOutlinePieChartOutline,
 } from "react-icons/md";
 import jsCookie from "js-cookie";
 import clsx from "clsx";
@@ -28,29 +29,38 @@ export default function BottomBar() {
   };
 
   return (
-    <div className="p-3 h-[62px]">
+    <div className="fixed bottom-0 inset-x-0 lg:hidden p-3 z-10">
       <div className="bg-slate-500 rounded-xl h-full">
-        <div className="grid grid-cols-3 h-full">
-          <button className="flex justify-center items-center">
+        <div className="grid grid-cols-4 h-10">
+          <button
+            className="flex justify-center items-center"
+            onClick={() => router.push("/transaction")}
+          >
             <MdOutlineHome
               className={clsx(activeMenu("/transaction"))}
               size={24}
-              onClick={() => router.push("/transaction")}
             />
           </button>
-          <button className="flex justify-center items-center">
+          <button
+            className="flex justify-center items-center"
+            onClick={() => router.push("/account")}
+          >
             <MdOutlineAccountBalance
               className={clsx(activeMenu("/account"))}
               size={24}
-              onClick={() => router.push("/account")}
             />
           </button>
-          <button className="flex justify-center items-center">
-            <MdOutlineLogout
-              className="text-white"
+          <button
+            className="flex justify-center items-center"
+            onClick={() => router.push("/budget")}
+          >
+            <MdOutlinePieChartOutline
+              className={clsx(activeMenu("/budget"))}
               size={24}
-              onClick={logout}
             />
+          </button>
+          <button className="flex justify-center items-center" onClick={logout}>
+            <MdOutlineLogout className="text-white" size={24} />
           </button>
         </div>
       </div>

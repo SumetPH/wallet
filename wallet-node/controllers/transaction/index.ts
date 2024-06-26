@@ -12,10 +12,16 @@ router.get("/transaction-list", auth, async (req, res) => {
   try {
     const schema = z.object({
       account_id: z.string().optional(),
+      category_id: z.string().optional(),
+      start_date: z.string().optional(),
+      end_date: z.string().optional(),
     });
 
     const query = await schema.parse({
       account_id: req.query.account_id,
+      category_id: req.query.category_id,
+      start_date: req.query.start_date,
+      end_date: req.query.end_date,
     });
 
     let querySql = db
@@ -57,6 +63,23 @@ router.get("/transaction-list", auth, async (req, res) => {
 
     if (query.account_id) {
       querySql = querySql.where("account_id", "=", query.account_id);
+    }
+    if (query.category_id) {
+      querySql = querySql.where("category_id", "=", query.category_id);
+    }
+    if (query.start_date) {
+      querySql = querySql.where(
+        "transaction_created_at",
+        ">=",
+        new Date(query.start_date)
+      );
+    }
+    if (query.end_date) {
+      querySql = querySql.where(
+        "transaction_created_at",
+        "<=",
+        new Date(query.end_date)
+      );
     }
 
     const transactions = await querySql.execute();

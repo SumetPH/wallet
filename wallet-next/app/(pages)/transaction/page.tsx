@@ -4,7 +4,7 @@ import React from "react";
 import useTransactionList from "@/services/useTransactionList";
 import TransactionList from "@/components/transaction/TransactionList";
 
-export default function Home() {
+export default function TransactionPage() {
   const transactionList = useTransactionList({});
 
   return (

@@ -8,7 +8,7 @@ import AccountRow from "@/components/account/AccountRow";
 import { Skeleton } from "@nextui-org/react";
 import numeral from "numeral";
 
-export default function Account() {
+export default function AccountPage() {
   const accountList = useAccountList({
     enable: true,
   });

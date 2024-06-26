@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 import db from "../../configs/db";
 import jwt from "jsonwebtoken";
 import auth from "../../middlewares/auth";
+import bcrypt from "bcrypt";
 
 const router = express.Router();
 
@@ -25,7 +26,7 @@ router.post("/auth/login", async (req, res) => {
       return res.status(404).send("User not found");
     }
 
-    const passwordValid = await Bun.password.verify(
+    const passwordValid = await bcrypt.compare(
       body.password,
       user.user_password
     );
@@ -46,6 +47,7 @@ router.post("/auth/login", async (req, res) => {
       user: userData,
     });
   } catch (error) {
+    console.error(error);
     return res.status(500).json(error);
   }
 });
@@ -63,7 +65,7 @@ router.post("/auth/register", async (req, res) => {
       .values({
         user_id: uuid(),
         user_name: body.username,
-        user_password: await Bun.password.hash(body.password),
+        user_password: await bcrypt.hash(body.password, 10),
       })
       .returningAll()
       .executeTakeFirstOrThrow();

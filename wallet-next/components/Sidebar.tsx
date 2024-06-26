@@ -7,6 +7,7 @@ import {
   MdOutlineHome,
   MdOutlineAccountBalance,
   MdOutlineLogout,
+  MdOutlinePieChartOutline,
 } from "react-icons/md";
 import jsCookie from "js-cookie";
 
@@ -40,6 +41,14 @@ export default function Sidebar() {
           >
             <MdOutlineAccountBalance size={22} />
             <span className="text-base font-medium">บัญชี</span>
+          </Button>
+          <Button
+            className="justify-start"
+            fullWidth
+            onClick={() => router.push("/budget")}
+          >
+            <MdOutlinePieChartOutline size={22} />
+            <span className="text-base font-medium">งบประมาณ</span>
           </Button>
         </div>
       </div>

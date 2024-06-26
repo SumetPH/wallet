@@ -25,7 +25,7 @@ export default function Layout({ children }: Props) {
       <div className="hidden lg:block w-[280px] bg-slate-500 fixed inset-0">
         <SideBar />
       </div>
-      <div className="lg:pl-[280px] bg-slate-200 min-h-dvh -mb-[62px] lg:mb-0">
+      <div className="lg:pl-[280px] bg-slate-200 min-h-dvh pb-12 lg:pb-0">
         <div className="container mx-auto p-6 ">
           <div className="bg-white rounded-xl p-6">{children}</div>
         </div>

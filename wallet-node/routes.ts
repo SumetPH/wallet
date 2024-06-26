@@ -7,10 +7,10 @@ import budget from "./controllers/budget";
 import category from "./controllers/category";
 
 export default function routes(app: Express) {
-  app.use("/v1", auth);
-  app.use("/v1", account);
-  app.use("/v1", accountType);
-  app.use("/v1", transaction);
-  app.use("/v1", budget);
-  app.use("/v1", category);
+  app.use("/api/v1", auth);
+  app.use("/api/v1", account);
+  app.use("/api/v1", accountType);
+  app.use("/api/v1", transaction);
+  app.use("/api/v1", budget);
+  app.use("/api/v1", category);
 }

@@ -48,8 +48,8 @@ export default function Login() {
         },
       });
       if (res.status === 200) {
-        jsCookie.set("token", res.data.token);
-        jsCookie.set("user", JSON.stringify(res.data.user));
+        jsCookie.set("token", res.data.token, { expires: 7 });
+        jsCookie.set("user", JSON.stringify(res.data.user), { expires: 7 });
         router.replace("/transaction");
       }
     } catch (error) {
